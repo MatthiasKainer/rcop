@@ -35,13 +35,7 @@ Here are some examples of how you can use rcop:
 To validate a commit message that has the type fix and the field scope:
 
 ```
-echo "fix: scope: Some fixes" | rcop
-```
-
-To validate a commit message that has the type feature and the fields scope and breaking:
-
-```
-echo "feature: scope: Some new feature; breaking: This is a breaking change" | rcop --types feature=scope,breaking
+echo "fix(scope): Some fixes" | rcop
 ```
 
 To validate a commit message that has the type docs and no required fields:
