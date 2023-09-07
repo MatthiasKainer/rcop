@@ -10,6 +10,16 @@ To use this package, you'll need to have Rust and Cargo installed on your system
 cargo install rcop
 ```
 
+You can also download the latest executable and run them directly via
+
+```bash
+RELEASE_VERSION=0.1.2
+RELEASE_OS=x86_64-unknown-linux-musl # or x86_64-apple-darwin
+curl -L -o rcop https://github.com/MatthiasKainer/rcop/releases/download/$RELEASE_VERSION/rcop-$RELEASE_VERSION-$RELEASE_OS
+chmod +x rcop
+echo "chore: hello world" | ./rcop
+```
+
 ## Usage
 
 To use the command line utility, run the following command in the root of your git repository:
