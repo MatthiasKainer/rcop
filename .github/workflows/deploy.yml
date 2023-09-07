@@ -22,11 +22,7 @@ jobs:
 
           - build: macos
             os: macos-latest
-            target: x86_64-apple-darwin
-            
-          - build: windows-gnu
-            os: windows-latest
-            target: x86_64-pc-windows-gnu
+            target: x86_64-apple-darwin            
 
     steps:
       - name: Checkout
@@ -56,22 +52,14 @@ jobs:
         run: |
           binary_name="rcop"
 
-          dirname="$binary_name-${{ env.VERSION }}-${{ matrix.target }}"
-          mkdir "$dirname"
+          releasename="$binary_name-${{ env.VERSION }}-${{ matrix.target }}"
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            mv "target/${{ matrix.target }}/release/$binary_name.exe" "$dirname"
+            mv "target/${{ matrix.target }}/release/$binary_name.exe" "$releasename.exe"
+            echo "ASSET=$releasename.exe" > $GITHUB_ENV
           else
-            mv "target/${{ matrix.target }}/release/$binary_name" "$dirname"
+            mv "target/${{ matrix.target }}/release/$binary_name" "$releasename"
+            echo "ASSET=$releasename" >> $GITHUB_ENV
           fi
-
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            7z a "$dirname.zip" "$dirname"
-            echo "ASSET=$dirname.zip" >> $GITHUB_ENV
-          else
-            tar -czf "$dirname.tar.gz" "$dirname"
-            echo "ASSET=$dirname.tar.gz" >> $GITHUB_ENV
-          fi
-
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
