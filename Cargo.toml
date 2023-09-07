@@ -1,5 +1,10 @@
 [package]
 name = "rcop"
+description = "command line utility to validate commit messages following conventionalcommits.org"
+homepage = "https://github.com/matthiaskainer/rcop"
+repository = "https://github.com/matthiaskainer/rcop"
+license-file = "LICENSE"
+readme = "Readme.md"
 version = "0.1.0"
 edition = "2021"
 
