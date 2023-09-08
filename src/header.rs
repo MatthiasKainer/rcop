@@ -146,11 +146,15 @@ pub(crate) fn default_commit_types() -> Vec<CommitMessage> {
 
 pub fn validate(
     spec: Vec<CommitMessage>,
+    ignore_case: bool,
     commit_type: &str,
     scope: &str,
     description: &str,
 ) -> Result<bool, Error> {
-    let commit_type = spec.iter().find(|x| x.commit_type == commit_type);
+    let commit_type = spec.iter().find(|x| {
+        x.commit_type == commit_type
+            || (ignore_case && x.commit_type.to_ascii_uppercase() == commit_type.to_ascii_uppercase())
+    });
     match commit_type {
         Some(_type) => {
             if _type.required.contains(&"scope".to_string()) && scope.is_empty() {
@@ -265,7 +269,13 @@ fn test_validate_success() {
         ("test", "", "description"),
     ];
     for (commit_type, scope, description) in test_cases {
-        let result = validate(default_commit_types(), commit_type, scope, description);
+        let result = validate(
+            default_commit_types(),
+            false,
+            commit_type,
+            scope,
+            description,
+        );
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), true);
     }
@@ -280,7 +290,86 @@ fn test_validate_failure() {
         ("build", "scope", ""),
     ];
     for (commit_type, scope, description) in test_cases {
-        let result = validate(default_commit_types(), commit_type, scope, description);
+        let result = validate(
+            default_commit_types(),
+            false,
+            commit_type,
+            scope,
+            description,
+        );
+        assert!(result.is_err());
+    }
+}
+
+#[test]
+fn test_validate_ignore_cases_success() {
+    let test_cases = vec![
+        ("feat", "scope", "description"),
+        ("FEAT", "scope", "description"),
+        ("build", "", "description"),
+        ("BUILD", "", "description"),
+    ];
+    for (commit_type, scope, description) in test_cases {
+        let result = validate(
+            default_commit_types(),
+            true,
+            commit_type,
+            scope,
+            description,
+        );
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), true);
+    }
+}
+
+#[test]
+fn test_validate_ignore_cases_more_cases() {
+    let commit_types = vec![
+        CommitMessage {
+            commit_type: "FEAT".to_string(),
+            required: vec!["scope".to_string(), "description".to_string()],
+        },
+        CommitMessage {
+            commit_type: "build".to_string(),
+            required: vec!["description".to_string()],
+        },
+    ];
+    let test_cases = vec![
+        ("feat", "scope", "description"),
+        ("FEAT", "scope", "description"),
+        ("build", "", "description"),
+        ("BUILD", "", "description"),
+    ];
+    for (commit_type, scope, description) in test_cases {
+        let result = validate(
+            commit_types.clone(),
+            true,
+            commit_type,
+            scope,
+            description,
+        );
+        
+        assert!(result.is_ok(), "Error: {}", result.unwrap_err());
+        assert_eq!(result.unwrap(), true);
+    }
+}
+
+#[test]
+fn test_validate_ignore_cases_failure() {
+    let test_cases = vec![
+        ("not_allowed", "scope", "description", true),
+        ("Feat", "scope", "description", false),
+        ("FIX", "", "description", false),
+        ("BUILD", "scope", "", false),
+    ];
+    for (commit_type, scope, description, ignore_case) in test_cases {
+        let result = validate(
+            default_commit_types(),
+            ignore_case,
+            commit_type,
+            scope,
+            description,
+        );
         assert!(result.is_err());
     }
 }
