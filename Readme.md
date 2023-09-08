@@ -36,6 +36,7 @@ Add the location for `rcop` to your `$PATH` and the `commit-msg` from this repos
 Here are the command line options you can use with rcop:
 
 `--dont-exit-on-errors` or `-e`: By default, the command line utility exits with a non-zero exit code when it encounters an error. If you pass this option, it will print the error message and continue running.
+`--allow-caps-types` or `-c`: Allow all defined commit types to be uppercase as well as lowercase (e.g., "feat" and "FEAT"). 
 `--types` or `-t`: This option allows you to override the commit types and the required fields for each commit type. For example, if you want to add a commit type named `feature` that requires a field named `scope`, you can pass the following argument: `--types "feature=scope"`. You can specify multiple commit types by separating them with semicolons, like this: `--types "fix=scope,description;feature=scope,body"`.
 
 ## Examples
@@ -64,6 +65,12 @@ To validate a commit message and print the error message instead of exiting:
 
 ```
 echo "invalid: scope: Some invalid commit message" | rcop --dont-exit-on-errors
+```
+
+To validate a commit message that has an all caps commit type:
+
+```
+echo "DOCS: Some updates to the documentation" | rcop --allow-caps-types
 ```
 
 ## Output

@@ -146,11 +146,12 @@ pub(crate) fn default_commit_types() -> Vec<CommitMessage> {
 
 pub fn validate(
     spec: Vec<CommitMessage>,
+    allow_caps_type: bool,
     commit_type: &str,
     scope: &str,
     description: &str,
 ) -> Result<bool, Error> {
-    let commit_type = spec.iter().find(|x| x.commit_type == commit_type);
+    let commit_type = spec.iter().find(|x| x.commit_type == commit_type || (allow_caps_type && x.commit_type.to_ascii_uppercase() == commit_type));
     match commit_type {
         Some(_type) => {
             if _type.required.contains(&"scope".to_string()) && scope.is_empty() {
@@ -265,7 +266,7 @@ fn test_validate_success() {
         ("test", "", "description"),
     ];
     for (commit_type, scope, description) in test_cases {
-        let result = validate(default_commit_types(), commit_type, scope, description);
+        let result = validate(default_commit_types(), false, commit_type, scope, description);
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), true);
     }
@@ -280,7 +281,36 @@ fn test_validate_failure() {
         ("build", "scope", ""),
     ];
     for (commit_type, scope, description) in test_cases {
-        let result = validate(default_commit_types(), commit_type, scope, description);
+        let result = validate(default_commit_types(), false, commit_type, scope, description);
+        assert!(result.is_err());
+    }
+}
+
+#[test]
+fn test_validate_allow_caps_types_success() {
+    let test_cases = vec![
+        ("feat", "scope", "description"),
+        ("FEAT", "scope", "description"),
+        ("build", "", "description"),
+        ("BUILD", "", "description"),
+    ];
+    for (commit_type, scope, description) in test_cases {
+        let result = validate(default_commit_types(), true, commit_type, scope, description);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), true);
+    }
+}
+
+#[test]
+fn test_validate_allow_caps_types_failure() {
+    let test_cases = vec![
+        ("not_allowed", "scope", "description", true),
+        ("Feat", "scope", "description", true),
+        ("FIX", "", "description", true),
+        ("BUILD", "scope", "", false),
+    ];
+    for (commit_type, scope, description, allow_caps_type) in test_cases {
+        let result = validate(default_commit_types(), allow_caps_type, commit_type, scope, description);
         assert!(result.is_err());
     }
 }

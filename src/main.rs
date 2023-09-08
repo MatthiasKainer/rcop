@@ -66,14 +66,18 @@ fn parse_commit_types(text: String) -> Vec<CommitMessage> {
     commit_messages
 }
 
-fn parse_args() -> Result<(bool, Vec<CommitMessage>), Error> {
+fn parse_args() -> Result<(bool, bool, Vec<CommitMessage>), Error> {
     let mut dont_exit_on_errors = false;
+    let mut allow_caps_type = false;
     let mut commit_types = default_commit_types();
 
     for (index, argument) in env::args().enumerate() {
         match argument.as_str() {
             "--dont-exit-on-errors" | "-e" => {
                 dont_exit_on_errors = true;
+            }
+            "--allow-caps-types" | "-c" => {
+                allow_caps_type = true;
             }
             "--types" | "-t" => match env::args().nth(index + 1) {
                 Some(arg) => commit_types = parse_commit_types(arg),
@@ -88,11 +92,11 @@ fn parse_args() -> Result<(bool, Vec<CommitMessage>), Error> {
         }
     }
 
-    Ok((dont_exit_on_errors, commit_types.to_vec()))
+    Ok((dont_exit_on_errors, allow_caps_type, commit_types.to_vec()))
 }
 
 fn main() {
-    let (dont_exit_on_errors, commit_types) = match parse_args() {
+    let (dont_exit_on_errors, allow_caps_type, commit_types) = match parse_args() {
         Ok(args) => args,
         Err(err) => {
             println!("Error!: {:#?}", err);
@@ -115,7 +119,7 @@ fn main() {
             )
         }
     };
-    let validation = match validate(commit_types, &syntax_tree.0, &syntax_tree.1, &syntax_tree.2) {
+    let validation = match validate(commit_types, allow_caps_type, &syntax_tree.0, &syntax_tree.1, &syntax_tree.2) {
         Ok(result) => result,
         Err(err) => {
             if !dont_exit_on_errors {
